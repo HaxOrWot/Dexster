@@ -100,7 +100,7 @@ A **reverse shell** inverts the traditional attacker → target connection. Inst
 
 | &nbsp; | File | Description |
 |:---:|:---|:---|
-| 🔴 | `reverse_shell_system.c` | **Main payload** — UAC bypass + SYSTEM escalation + shell loop |
+| 🔴 | `reverse_shell_Win-x64.c` | **Main payload** — UAC bypass + SYSTEM escalation + shell loop |
 | 📄 | `manifest.xml` | Windows application manifest — execution level set to `asInvoker` |
 | 🔧 | `manifest.rc` | Resource script — embeds the manifest into the compiled binary |
 
