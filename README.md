@@ -11,7 +11,7 @@
 ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
 </pre>
 
-<h3>Reverse TCP Shell &nbsp;·&nbsp; Windows Edition &nbsp;·&nbsp; <code>v1</code></h3>
+<h3>Reverse TCP Shell &nbsp;·&nbsp; Windows Edition &nbsp;·&nbsp; <code>v4.5</code></h3>
 <p><em>From a regular user to <strong>NT AUTHORITY\SYSTEM</strong> — silently, automatically, no prompts.</em></p>
 
 <br/>
@@ -607,7 +607,7 @@ Edit these defines at the top of `reverse_shell_system.c` before compiling:
 
 <br/><br/>
 
-<em>Dexster &nbsp;·&nbsp; Reverse TCP Shell &nbsp;·&nbsp; v1 &nbsp;·&nbsp; Built by notphoenixx &nbsp;❤️</em>
+<em>Dexster &nbsp;·&nbsp; Reverse TCP Shell &nbsp;·&nbsp; v4.5 &nbsp;·&nbsp; Built by notphoenixx &nbsp;❤️</em>
 
 <br/>
 
